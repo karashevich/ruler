@@ -5,10 +5,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Cursor;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Scene;
+import javafx.scene.*;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -23,10 +21,7 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
+import javafx.stage.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,7 +54,7 @@ public class Main extends Application {
         final Line myLine = new Line();
         final Text coordinateText = new Text();
 
-        coordinateText.setFont(new Font(12));
+        coordinateText.setFont(new Font(9));
         coordinateText.setStroke(Color.WHITE);
 
         myLine.setStrokeWidth(1);
@@ -67,6 +62,8 @@ public class Main extends Application {
 
         primaryStage.setTitle("Drawing Tool");
         primaryStage.initStyle(StageStyle.TRANSPARENT);
+
+
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
 
         primaryStage.setX(primaryScreenBounds.getMinX());
@@ -123,6 +120,8 @@ public class Main extends Application {
             @Override
             public void handle(MouseEvent me) {
 
+                coordinateText.setText("");
+
                 path = new Path();
                 path.setMouseTransparent(true);
                 path.setStrokeWidth(sampleLine.getStrokeWidth());
@@ -133,6 +132,12 @@ public class Main extends Application {
                 myLine.setStartY(point[0].getY());
                 myLine.setEndX(point[0].getX());
                 myLine.setEndY(point[0].getY());
+
+                if (modifiers.get(KeyCode.SHIFT)!= null && modifiers.get(KeyCode.SHIFT).booleanValue()) {
+                    coordinateText.setText(Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())));
+                    coordinateText.setX(me.getX() + 10);
+                    coordinateText.setY(me.getY() + 10);
+                }
             }
         });
 
@@ -140,7 +145,14 @@ public class Main extends Application {
             @Override
             public void handle(KeyEvent event) {
                 modifiers.put(event.getCode(), true);
+                if(event.getCode() == KeyCode.ESCAPE) {
+                    lineGroup.getChildren().removeAll();
+                    lineGroup.managedProperty().bind(lineGroup.visibleProperty());
+                    lineGroup.setVisible(false);
+                    System.out.println("Escape pressed!");
+                }
             }
+
         });
 
         scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
@@ -175,6 +187,7 @@ public class Main extends Application {
                 // keep lines within rectangle
 
                 if (canvas.getBoundsInLocal().contains(me.getX(), me.getY()) && modifiers.get(KeyCode.SHIFT) != null && modifiers.get(KeyCode.SHIFT).booleanValue()) {
+                    lineGroup.setVisible(true);
                     myLine.setEndX(me.getX());
                     myLine.setEndY(me.getY());
                     coordinateText.setText(Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())));
@@ -193,6 +206,7 @@ public class Main extends Application {
         vb.getChildren().addAll(canvas);
         root.getChildren().addAll(vb, lineGroup);
         primaryStage.setScene(scene);
+
         primaryStage.show();
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             public void handle(WindowEvent we) {
@@ -200,4 +214,5 @@ public class Main extends Application {
             }
         });
     }
+
 }
