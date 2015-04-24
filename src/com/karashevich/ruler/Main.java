@@ -1,5 +1,8 @@
 package com.karashevich.ruler;
 
+import com.tulskiy.keymaster.common.HotKey;
+import com.tulskiy.keymaster.common.HotKeyListener;
+import com.tulskiy.keymaster.common.Provider;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -26,6 +29,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,6 +48,16 @@ public class Main extends Application {
         mainStage.setAlwaysOnTop(true);
         mainStage.setTitle("Drawing Tool");
         mainStage.initStyle(StageStyle.TRANSPARENT);
+
+        boolean useSwingEventQueue = false;
+        Provider provider = Provider.getCurrentProvider(useSwingEventQueue);
+        provider.register(KeyStroke.getKeyStroke("control shift R"), new HotKeyListener() {
+            @Override
+            public void onHotKey(HotKey hotKey) {
+                System.out.println("HotKey fired");
+                (new RulerMeasurement()).run();
+            }
+        });
 
         // the wumpus doesn't leave when the last stage is hidden.
         Platform.setImplicitExit(false);
@@ -92,6 +106,12 @@ public class Main extends Application {
         if (trayIcon != null) {
             //       trayIcon.setImage(updatedImage);
         }
+
+        mainStage.setOnCloseRequest(event -> {
+            System.err.println("Provider stopped.");
+            provider.reset();
+            provider.stop();
+        });
     }
 
     public class RulerMeasurement implements Runnable {

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="jkeymaster-1.2-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jkeymaster-1.2-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jna-4.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
