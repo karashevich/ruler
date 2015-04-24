@@ -1,8 +1,9 @@
+package com.karashevich.ruler;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
@@ -19,7 +20,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -27,14 +27,13 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
-// hunt the Wumpus....
-public class Ruler extends Application {
-    private static final Insets SAFETY_ZONE = new Insets(10);
+public class Main extends Application {
     private Label cowerInFear = new Label();
     private Stage mainStage;
 
@@ -55,13 +54,12 @@ public class Ruler extends Application {
             // get the SystemTray instance
             SystemTray tray = SystemTray.getSystemTray();
             // load an image
-            Image image = Toolkit.getDefaultToolkit().getImage("tray-icon.gif");
+            Image image = new ImageIcon(this.getClass().getResource("tray-icon.gif")).getImage();
             // create a action listener to listen for default action executed on the tray icon
             // create a popup menu
             PopupMenu popup = new PopupMenu();
             // create menu item for the default action
             MenuItem defaultItem = new MenuItem("Run Measure");
-            final RulerApp rulerApp = new RulerApp();
 
             ActionListener listener = new ActionListener() {
                 @Override
@@ -94,36 +92,15 @@ public class Ruler extends Application {
         if (trayIcon != null) {
             //       trayIcon.setImage(updatedImage);
         }
-
-
-
-
-        // wumpus rulez
-
-
-        // the savage Wumpus will attack
-        // in the background when we least expect
-        // (at regular intervals ;-).
-
-        // every time we cower in fear
-        // from the last savage attack
-        // the wumpus will hide two seconds later.
-
-        stage.setScene(new Scene(cowerInFear));
     }
 
-    // it's so scary...
     public class RulerMeasurement implements Runnable {
-
 
         @Override
         public void run() {
-            // use runlater when we mess with the scene graph,
-            // so we don't cross the streams, as that would be bad.
             Platform.runLater(() -> {
                 final Double MAXSTROKE = 30.0;
                 final Integer CROSSLENGTH = 3;
-                final Path path;
                 final Group lineGroup;
 
                 final Map<KeyCode, Boolean> modifiers = new HashMap<KeyCode, Boolean>();
@@ -157,8 +134,6 @@ public class Ruler extends Application {
                 myLine.setStrokeWidth(1);
                 myLine.setStroke(Color.WHITE);
 
-
-
                 Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
 
                 mainStage.setX(primaryScreenBounds.getMinX());
@@ -170,12 +145,8 @@ public class Ruler extends Application {
 
                 final Scene scene = new Scene(root, primaryScreenBounds.getWidth(), primaryScreenBounds.getHeight());
                 scene.setFill(new Color(0.0, 0, 0, 0.0));
-
-                // A group to hold all the drawn path elements
                 lineGroup = new Group();
 
-
-                // Build the slider, label, and button and their VBox layout container
                 Button btnClear = new Button();
                 btnClear.setText("Clear");
                 btnClear.setOnAction(new EventHandler<ActionEvent>() {
@@ -185,13 +156,6 @@ public class Ruler extends Application {
                     }
                 });
 
-
-                // Build the RGB sliders, labels, and HBox containers
-
-                // Build the VBox container for all the slider containers
-
-
-                // Build the sample line and its layout container
                 final Line sampleLine = new Line(0, 0, 140, 0);
                 sampleLine.setStrokeWidth(1);
                 sampleLine.setStroke(Color.WHITE);
@@ -199,10 +163,7 @@ public class Ruler extends Application {
                 StackPane stackpane = new StackPane();
                 stackpane.setPrefHeight(MAXSTROKE);
                 stackpane.getChildren().add(sampleLine);
-                // Bind to the Paint Binding object
 
-
-                // Build the canvas
                 final Rectangle canvas = new Rectangle(scene.getWidth(), scene.getHeight());
                 canvas.setCursor(Cursor.CROSSHAIR);
                 canvas.setFill(new Color(0, 0, 0, 0.05));

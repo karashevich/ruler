@@ -11,9 +11,9 @@
     <bundleapp outputdirectory="out/artifacts"
         name="Ruler"
         displayname="Ruler"
-        identifier="sample.Main"
+        identifier="com.karashevich.ruler.Main"
         shortversion="1.0"
-        mainclassname="sample.Main">
+        mainclassname="com.karashevich.ruler.Main">
       <runtime dir="${env.JAVA_HOME}"/>
        <classpath file="out/artifacts/ruler/ruler.jar" />
     </bundleapp>
