@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ruler" default="default" basedir=".">
+
+  <property environment="env"/>
+
+  <taskdef name="bundleapp"
+      classname="com.oracle.appbundler.AppBundlerTask"
+      classpath="lib/appBundler-1.0.jar"/>
+
+  <target name="default">
+    <bundleapp outputdirectory="out/artifacts"
+        name="Ruler"
+        displayname="Ruler"
+        identifier="sample.Main"
+        shortversion="1.0"
+        mainclassname="sample.Main">
+      <runtime dir="${env.JAVA_HOME}"/>
+       <classpath file="out/artifacts/ruler/ruler.jar" />
+    </bundleapp>
+   </target>
+ </project>

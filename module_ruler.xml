@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_ruler" default="compile.module.ruler">
+  <dirname property="module.ruler.basedir" file="${ant.file.module_ruler}"/>
+  
+  <property name="module.jdk.home.ruler" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.ruler" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.ruler" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.ruler" value="-encoding UTF-8 -source 1.6 ${compiler.args}"/>
+  
+  <property name="ruler.output.dir" value="${module.ruler.basedir}/out/production/ruler"/>
+  <property name="ruler.testoutput.dir" value="${module.ruler.basedir}/out/test/ruler"/>
+  
+  <path id="ruler.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="ruler.module.production.classpath">
+    <path refid="${module.jdk.classpath.ruler}"/>
+  </path>
+  
+  <path id="ruler.runtime.production.module.classpath">
+    <pathelement location="${ruler.output.dir}"/>
+  </path>
+  
+  <path id="ruler.module.classpath">
+    <path refid="${module.jdk.classpath.ruler}"/>
+    <pathelement location="${ruler.output.dir}"/>
+  </path>
+  
+  <path id="ruler.runtime.module.classpath">
+    <pathelement location="${ruler.testoutput.dir}"/>
+    <pathelement location="${ruler.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.ruler">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.ruler">
+    <patternset refid="excluded.from.module.ruler"/>
+  </patternset>
+  
+  <path id="ruler.module.sourcepath">
+    <dirset dir="${module.ruler.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.ruler" depends="compile.module.ruler.production,compile.module.ruler.tests" description="Compile module ruler"/>
+  
+  <target name="compile.module.ruler.production" depends="register.custom.compilers" description="Compile module ruler; production classes">
+    <mkdir dir="${ruler.output.dir}"/>
+    <javac2 destdir="${ruler.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.ruler}/javac">
+      <compilerarg line="${compiler.args.ruler}"/>
+      <bootclasspath refid="ruler.module.bootclasspath"/>
+      <classpath refid="ruler.module.production.classpath"/>
+      <src refid="ruler.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.ruler"/>
+    </javac2>
+    
+    <copy todir="${ruler.output.dir}">
+      <fileset dir="${module.ruler.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.ruler.tests" depends="register.custom.compilers,compile.module.ruler.production" description="compile module ruler; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.ruler" description="cleanup module">
+    <delete dir="${ruler.output.dir}"/>
+    <delete dir="${ruler.testoutput.dir}"/>
+  </target>
+</project>
