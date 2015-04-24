@@ -6,8 +6,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.*;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -15,8 +15,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.LineTo;
-import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -39,6 +37,8 @@ public class Main extends Application {
     private static final Integer MAXRGB = 255;
     private static final Integer MINRGB = 0;
 
+    private static final Integer CROSSLENGTH = 3;
+
     /**
      * @param args the command line arguments
      */
@@ -54,8 +54,29 @@ public class Main extends Application {
         final Line myLine = new Line();
         final Text coordinateText = new Text();
 
+        final Group crossGroup1 = new Group();
+        final Line crossLineV1 = new Line();
+        final Line crossLineH1 = new Line();
+
+        final Group crossGroup2 = new Group();
+        final Line crossLineV2 = new Line();
+        final Line crossLineH2 = new Line();
+
+        crossLineV1.setStroke(Color.WHITE);
+        crossLineH1.setStroke(Color.WHITE);
+
+        crossLineV2.setStroke(Color.WHITE);
+        crossLineH2.setStroke(Color.WHITE);
+
+        DropShadow dropShadow = new DropShadow();
+        dropShadow.setRadius(2.0);
+        dropShadow.setOffsetX(1.0);
+        dropShadow.setOffsetY(1.0);
+        dropShadow.setColor(Color.color(0.4, 0.4, 0.4));
         coordinateText.setFont(new Font(9));
         coordinateText.setStroke(Color.WHITE);
+        coordinateText.setEffect(dropShadow);
+
 
         myLine.setStrokeWidth(1);
         myLine.setStroke(Color.WHITE);
@@ -111,9 +132,14 @@ public class Main extends Application {
         // Build the canvas
         final Rectangle canvas = new Rectangle(scene.getWidth(), scene.getHeight());
         canvas.setCursor(Cursor.CROSSHAIR);
-        canvas.setFill(new Color(0, 0, 0, 0.2));
+        canvas.setFill(new Color(0, 0, 0, 0.05));
         lineGroup.getChildren().add(myLine);
         lineGroup.getChildren().add(coordinateText);
+
+        crossGroup1.getChildren().add(crossLineH1);
+        crossGroup1.getChildren().add(crossLineV1);
+
+        lineGroup.getChildren().add(crossGroup1);
 
         canvas.setOnMousePressed(new EventHandler<MouseEvent>() {
 
@@ -133,6 +159,16 @@ public class Main extends Application {
                 myLine.setEndX(point[0].getX());
                 myLine.setEndY(point[0].getY());
 
+                crossLineH1.setStartX(point[0].getX() - CROSSLENGTH);
+                crossLineH1.setStartY(point[0].getY());
+                crossLineH1.setEndX(point[0].getX() + CROSSLENGTH);
+                crossLineH1.setEndY(point[0].getY());
+
+                crossLineV1.setStartX(point[0].getX());
+                crossLineV1.setStartY(point[0].getY() - CROSSLENGTH);
+                crossLineV1.setEndX(point[0].getX());
+                crossLineV1.setEndY(point[0].getY() + CROSSLENGTH);
+
                 if (modifiers.get(KeyCode.SHIFT)!= null && modifiers.get(KeyCode.SHIFT).booleanValue()) {
                     coordinateText.setText(Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())));
                     coordinateText.setX(me.getX() + 10);
@@ -150,6 +186,7 @@ public class Main extends Application {
                     lineGroup.managedProperty().bind(lineGroup.visibleProperty());
                     lineGroup.setVisible(false);
                     System.out.println("Escape pressed!");
+                    primaryStage.close();
                 }
             }
 
