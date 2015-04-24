@@ -15,7 +15,7 @@
         shortversion="1.0"
         mainclassname="com.karashevich.ruler.Main">
       <runtime dir="${env.JAVA_HOME}"/>
-       <classpath file="out/artifacts/ruler/ruler.jar" />
+       <classpath file="out/artifacts/ruler_jar/ruler.jar"/>
     </bundleapp>
    </target>
  </project>
