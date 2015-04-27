@@ -7,32 +7,34 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Point2D;
-import javafx.geometry.Rectangle2D;
+import javafx.geometry.*;
+import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
+import javafx.stage.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.MenuItem;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,8 +64,6 @@ public class Main extends Application {
         // the wumpus doesn't leave when the last stage is hidden.
         Platform.setImplicitExit(false);
 
-
-
         if (SystemTray.isSupported()) {
             // get the SystemTray instance
             SystemTray tray = SystemTray.getSystemTray();
@@ -78,7 +78,8 @@ public class Main extends Application {
             ActionListener listener = new ActionListener() {
                 @Override
                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                    (new RulerMeasurement()).run();
+                    newWindow(mainStage);
+//                    (new RulerMeasurement()).run();
                 }
             };
             defaultItem.addActionListener(listener);
@@ -124,7 +125,7 @@ public class Main extends Application {
                 final Group lineGroup;
 
                 final Map<KeyCode, Boolean> modifiers = new HashMap<KeyCode, Boolean>();
-                final Point2D[] point = new Point2D[1];
+                final Point2D[] point = new Point2D[2];
                 final Line myLine = new Line();
                 final Text coordinateText = new Text();
 
@@ -142,6 +143,7 @@ public class Main extends Application {
                 crossLineV2.setStroke(Color.WHITE);
                 crossLineH2.setStroke(Color.WHITE);
 
+                //Set dopshadow effect
                 DropShadow dropShadow = new DropShadow();
                 dropShadow.setRadius(2.0);
                 dropShadow.setOffsetX(1.0);
@@ -150,6 +152,9 @@ public class Main extends Application {
                 coordinateText.setFont(new Font(9));
                 coordinateText.setStroke(Color.WHITE);
                 coordinateText.setEffect(dropShadow);
+                crossGroup1.setEffect(dropShadow);
+                crossGroup2.setEffect(dropShadow);
+                myLine.setEffect(dropShadow);
 
                 myLine.setStrokeWidth(1);
                 myLine.setStroke(Color.WHITE);
@@ -193,12 +198,19 @@ public class Main extends Application {
                 crossGroup1.getChildren().add(crossLineH1);
                 crossGroup1.getChildren().add(crossLineV1);
 
+                crossGroup2.getChildren().add(crossLineH2);
+                crossGroup2.getChildren().add(crossLineV2);
+
+
                 lineGroup.getChildren().add(crossGroup1);
+                lineGroup.getChildren().add(crossGroup2);
 
                 canvas.setOnMousePressed(new EventHandler<MouseEvent>() {
 
                     @Override
                     public void handle(MouseEvent me) {
+
+                        crossGroup2.setVisible(false);
 
                         coordinateText.setText("");
 
@@ -219,7 +231,7 @@ public class Main extends Application {
                         crossLineV1.setEndX(point[0].getX());
                         crossLineV1.setEndY(point[0].getY() + CROSSLENGTH);
 
-                        coordinateText.setText(Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())));
+                        coordinateText.setText("[" + Math.round(me.getX()) + ", " + Math.round(me.getY()) + "]");
                         coordinateText.setX(me.getX() + 10);
                         coordinateText.setY(me.getY() + 10);
                     }
@@ -235,6 +247,9 @@ public class Main extends Application {
                             lineGroup.setVisible(false);
                             System.out.println("Escape pressed!");
                             mainStage.close();
+
+                            crossGroup2.managedProperty().bind(crossGroup2.visibleProperty());
+                            crossGroup2.setVisible(false);
                         }
                     }
 
@@ -260,6 +275,8 @@ public class Main extends Application {
 
                     @Override
                     public void handle(MouseEvent me) {
+
+
                     }
                 });
 
@@ -271,12 +288,69 @@ public class Main extends Application {
                         // keep lines within rectangle
 
                         if (canvas.getBoundsInLocal().contains(me.getX(), me.getY())) {
-                            lineGroup.setVisible(true);
-                            myLine.setEndX(me.getX());
-                            myLine.setEndY(me.getY());
-                            coordinateText.setText(Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())));
-                            coordinateText.setX(me.getX() + 10);
-                            coordinateText.setY(me.getY() + 10);
+
+
+
+                            if (modifiers.get(KeyCode.SHIFT) != null && modifiers.get(KeyCode.SHIFT).booleanValue()) {
+
+                                point[1] = new Point2D(me.getSceneX(), me.getSceneY());
+
+                                if ((Math.abs(point[0].getX() - point[1].getX()) - Math.abs(point[0].getY() - point[1].getY())) >= 0) {
+
+                                    point[1] = new Point2D(me.getSceneX(), point[0].getY());
+
+                                } else {
+
+                                    point[1] = new Point2D(point[0].getX(), me.getSceneY());
+
+                                }
+
+
+                                crossLineH2.setStartX(point[1].getX() - CROSSLENGTH);
+                                crossLineH2.setStartY(point[1].getY());
+                                crossLineH2.setEndX(point[1].getX() + CROSSLENGTH);
+                                crossLineH2.setEndY(point[1].getY());
+
+                                crossLineV2.setStartX(point[1].getX());
+                                crossLineV2.setStartY(point[1].getY() - CROSSLENGTH);
+                                crossLineV2.setEndX(point[1].getX());
+                                crossLineV2.setEndY(point[1].getY() + CROSSLENGTH);
+
+                                lineGroup.setVisible(true);
+                                myLine.setEndX(point[1].getX());
+                                myLine.setEndY(point[1].getY());
+
+                                coordinateText.setText("[" + Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())) + "]");
+                                coordinateText.setX(point[1].getX() + 10);
+                                coordinateText.setY(point[1].getY() + 10);
+
+                                crossGroup2.setVisible(true);
+
+
+                            } else {
+
+                                point[1] = new Point2D(me.getSceneX(), me.getSceneY());
+
+                                crossLineH2.setStartX(point[1].getX() - CROSSLENGTH);
+                                crossLineH2.setStartY(point[1].getY());
+                                crossLineH2.setEndX(point[1].getX() + CROSSLENGTH);
+                                crossLineH2.setEndY(point[1].getY());
+
+                                crossLineV2.setStartX(point[1].getX());
+                                crossLineV2.setStartY(point[1].getY() - CROSSLENGTH);
+                                crossLineV2.setEndX(point[1].getX());
+                                crossLineV2.setEndY(point[1].getY() + CROSSLENGTH);
+
+                                lineGroup.setVisible(true);
+                                myLine.setEndX(me.getX());
+                                myLine.setEndY(me.getY());
+                                coordinateText.setText("[" + Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())) + "]");
+                                coordinateText.setX(point[1].getX() + 10);
+                                coordinateText.setY(point[1].getY() + 10);
+
+                                crossGroup2.setVisible(true);
+
+                            }
                         }
 
                     }
@@ -297,6 +371,36 @@ public class Main extends Application {
             });
         }
 
+    }
+
+
+    public void newWindow(Stage stage) {
+        Platform.runLater(() -> {
+            final Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initOwner(stage);
+
+            GridPane grid = new GridPane();
+            grid.setAlignment(Pos.CENTER);
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(25, 25, 25, 25));
+
+            Scene scene = new Scene(grid, 300, 275);
+            stage.setScene(scene);
+
+            // set controllers here
+            Label label = new Label("Type shortcut here");
+            label.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+            grid.add(label, 0, 0, 2, 1);
+
+            TextField textField = new TextField("Shortcut");
+            grid.add(textField, 1, 1);
+
+
+            dialog.setScene(scene);
+            dialog.show();
+        });
     }
 
     public static void main(String[] args) {
