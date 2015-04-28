@@ -5,6 +5,9 @@ import com.tulskiy.keymaster.common.HotKeyListener;
 import com.tulskiy.keymaster.common.Provider;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.*;
@@ -18,6 +21,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -36,6 +40,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.MenuItem;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -125,9 +130,19 @@ public class Main extends Application {
                 final Group lineGroup;
 
                 final Map<KeyCode, Boolean> modifiers = new HashMap<KeyCode, Boolean>();
+
+                //OPTIONS
+                final boolean magnifierOption = true;
+                final boolean resectionOption = true;
+                final int resectionStep = 10;
+
+
+                final ArrayList<Resection> resections = new ArrayList<Resection>(10);
                 final Point2D[] point = new Point2D[2];
-                final Line myLine = new Line();
+                final Line myLine = new Line(0,0,0,0);
+                lineGroup = new Group();
                 final Text coordinateText = new Text();
+
 
                 final Group crossGroup1 = new Group();
                 final Line crossLineV1 = new Line();
@@ -170,7 +185,6 @@ public class Main extends Application {
 
                 final Scene scene = new Scene(root, primaryScreenBounds.getWidth(), primaryScreenBounds.getHeight());
                 scene.setFill(new Color(0.0, 0, 0, 0.0));
-                lineGroup = new Group();
 
                 Button btnClear = new Button();
                 btnClear.setText("Clear");
@@ -192,8 +206,7 @@ public class Main extends Application {
                 final Rectangle canvas = new Rectangle(scene.getWidth(), scene.getHeight());
                 canvas.setCursor(Cursor.CROSSHAIR);
                 canvas.setFill(new Color(0, 0, 0, 0.05));
-                lineGroup.getChildren().add(myLine);
-                lineGroup.getChildren().add(coordinateText);
+
 
                 crossGroup1.getChildren().add(crossLineH1);
                 crossGroup1.getChildren().add(crossLineV1);
@@ -202,6 +215,8 @@ public class Main extends Application {
                 crossGroup2.getChildren().add(crossLineV2);
 
 
+                lineGroup.getChildren().add(myLine);
+                lineGroup.getChildren().add(coordinateText);
                 lineGroup.getChildren().add(crossGroup1);
                 lineGroup.getChildren().add(crossGroup2);
 
@@ -210,16 +225,19 @@ public class Main extends Application {
                     @Override
                     public void handle(MouseEvent me) {
 
+                        lineGroup.getChildren().clear();
+                        lineGroup.getChildren().add(myLine);
+                        lineGroup.getChildren().add(coordinateText);
+                        lineGroup.getChildren().add(crossGroup1);
+                        lineGroup.getChildren().add(crossGroup2);
+
+                        resections.clear();
+
                         crossGroup2.setVisible(false);
 
                         coordinateText.setText("");
 
                         point[0] = new Point2D(me.getSceneX(), me.getSceneY());
-
-                        myLine.setStartX(point[0].getX());
-                        myLine.setStartY(point[0].getY());
-                        myLine.setEndX(point[0].getX());
-                        myLine.setEndY(point[0].getY());
 
                         crossLineH1.setStartX(point[0].getX() - CROSSLENGTH);
                         crossLineH1.setStartY(point[0].getY());
@@ -289,8 +307,6 @@ public class Main extends Application {
 
                         if (canvas.getBoundsInLocal().contains(me.getX(), me.getY())) {
 
-
-
                             if (modifiers.get(KeyCode.SHIFT) != null && modifiers.get(KeyCode.SHIFT).booleanValue()) {
 
                                 point[1] = new Point2D(me.getSceneX(), me.getSceneY());
@@ -317,8 +333,13 @@ public class Main extends Application {
                                 crossLineV2.setEndY(point[1].getY() + CROSSLENGTH);
 
                                 lineGroup.setVisible(true);
+
+                                myLine.setStartX(point[0].getX());
+                                myLine.setStartY(point[0].getY());
                                 myLine.setEndX(point[1].getX());
                                 myLine.setEndY(point[1].getY());
+                                if (resectionOption) calcResections(myLine, resections, resectionStep, lineGroup);
+                                redrawResections(resections, resectionStep, myLine);
 
                                 coordinateText.setText("[" + Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())) + "]");
                                 coordinateText.setX(point[1].getX() + 10);
@@ -342,8 +363,15 @@ public class Main extends Application {
                                 crossLineV2.setEndY(point[1].getY() + CROSSLENGTH);
 
                                 lineGroup.setVisible(true);
+
+                                myLine.setStartX(point[0].getX());
+                                myLine.setStartY(point[0].getY());
                                 myLine.setEndX(me.getX());
                                 myLine.setEndY(me.getY());
+                                if (resectionOption) calcResections(myLine, resections, resectionStep, lineGroup);
+                                redrawResections(resections, resectionStep, myLine);
+
+
                                 coordinateText.setText("[" + Math.round(Math.abs(myLine.getEndX() - myLine.getStartX())) + ", " + Math.round(Math.abs(myLine.getEndY() - myLine.getStartY())) + "]");
                                 coordinateText.setX(point[1].getX() + 10);
                                 coordinateText.setY(point[1].getY() + 10);
@@ -351,7 +379,17 @@ public class Main extends Application {
                                 crossGroup2.setVisible(true);
 
                             }
+
+                            double x0 = myLine.getStartX();
+                            double y0 = myLine.getStartY();
+
+                            double x1 = myLine.getEndX();
+                            double y1 = myLine.getEndY();
+
+                            double len_sqr = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
+
                         }
+
 
                     }
                 });
@@ -371,6 +409,32 @@ public class Main extends Application {
             });
         }
 
+    }
+
+    private void calcResections(Line myLine, ArrayList<Resection> resections, int resectionStep, Group lineGroup){
+        double dx = myLine.getEndX() - myLine.getStartX();
+        double dy = myLine.getEndY() - myLine.getStartY();
+
+        double length = Math.sqrt(dx * dx + dy * dy);
+        if (Math.round(length / resectionStep) != resections.size()) {
+            //delete redundant resections
+            if (Math.round(length / resectionStep) > resections.size()) {
+                int n = resections.size();
+                for (int i = (int) n; i < Math.round(length / resectionStep); i++) {
+                    final Resection resection = new Resection(myLine, i, 5, resectionStep);
+                    lineGroup.getChildren().add(resection.getLine());
+                    resections.add(resection);
+                }
+            } else {
+                int n = resections.size();
+                for (int i = (int) Math.round(length / resectionStep); i < n; i++) {
+                    final Resection resection = resections.get(resections.size() - 1);
+                     if (lineGroup.getChildren().contains(resection.getLine()))
+                        lineGroup.getChildren().remove(resection.getLine());
+                    resections.remove(resections.size() - 1);
+                }
+            }
+        }
     }
 
 
@@ -401,6 +465,12 @@ public class Main extends Application {
             dialog.setScene(scene);
             dialog.show();
         });
+    }
+
+    private void redrawResections(ArrayList<Resection> resections, int step, Line majorLine){
+        for (int i = 0; i < resections.size(); i++) {
+            resections.get(i).redraw(step, i, majorLine);
+        }
     }
 
     public static void main(String[] args) {
