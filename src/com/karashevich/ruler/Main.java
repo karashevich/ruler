@@ -468,8 +468,9 @@ public class Main extends Application {
     }
 
     private void redrawResections(ArrayList<Resection> resections, int step, Line majorLine){
+        int length = 3 + (resections.size()/20);
         for (int i = 0; i < resections.size(); i++) {
-            resections.get(i).redraw(step, i, majorLine);
+            resections.get(i).redraw(step, i, majorLine, length);
         }
     }
 

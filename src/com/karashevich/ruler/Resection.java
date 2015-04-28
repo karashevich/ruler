@@ -17,69 +17,14 @@ public class Resection {
     private int count;
     private int step;
 
-    private DoubleBinding dpx;
-    private DoubleBinding dpy;
-    private DoubleBinding dpex;
-    private DoubleBinding dpey;
-
 
     public Resection(Line majorLine, int count, int length, int step) {
         this.step = step;
         this.count = count;
         this.length = length;
 
-        dpx = new DoubleBinding(){
-            {
-                super.bind(majorLine.endXProperty(), majorLine.startXProperty());
-            }
-
-            @Override
-            protected double computeValue() {
-
-                return calc_x0(step, count, majorLine);
-            }
-        };
-
-        dpy = new DoubleBinding(){
-            {
-                super.bind(majorLine.endYProperty(), majorLine.startYProperty());
-            }
-
-            @Override
-            protected double computeValue() {
-                return calc_y0(step, count, majorLine);
-            }
-        };
-
-        dpex = new DoubleBinding(){
-            {
-                super.bind(majorLine.endXProperty(), majorLine.startXProperty());
-            }
-
-            @Override
-            protected double computeValue() {
-                return calc_x1(step, count, majorLine, length);
-            }
-        };
-
-        dpey = new DoubleBinding(){
-            {
-                super.bind(majorLine.endYProperty(), majorLine.startYProperty());
-            }
-
-            @Override
-            protected double computeValue() {
-                return calc_y1(step, count, majorLine, length);
-
-            }
-        };
-
         line = new Line();
-        line.startXProperty().bind(dpx);
-        line.startYProperty().bind(dpy);
-
-        line.endXProperty().bind(dpex);
-        line.endYProperty().bind(dpey);
+        redraw(step, count, majorLine, length);
 
         initStyle();
     }
@@ -133,9 +78,13 @@ public class Resection {
         line.setVisible(true);
     }
 
-    public void redraw(int step, int count, Line majorLine) {
+    public void redraw(int step, int count, Line majorLine, int _length) {
+        length = _length;
         line.setStartX(calc_x0(step, count, majorLine));
         line.setStartY(calc_y0(step, count, majorLine));
+        if (count%5 == 0) length *= 1.5;
+        if (count%10 == 0) length *= 1.5;
+
         line.setEndX(calc_x1(step, count, majorLine, length));
         line.setEndY(calc_y1(step, count, majorLine, length));
     }
